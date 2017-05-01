@@ -20,6 +20,33 @@ public:
 TEST_GROUP(UserInterface) {
 
 };
+//Figure 20.11 in C# bool
+public class AbstractHotWaterSource {
+	public:
+	virtual void start() {
+		if (isReady()) {
+			startBoiler();
+		}
+	}
+
+	virtual bool isReady() = 0;
+	virtual bool startBoiler() = 0;
+};
+
+public class CoffeeMakerHotWaterSource : public AbstractHotWaterSource {
+public:
+	virtual bool isReady() {
+		return CoffeeMaker::GetBoilerStatus() == READY;
+	}
+
+	virtual bool startBoiler() {
+		CoffeeMaker::StartBoiler();
+
+
+	}
+
+
+};
 
 TEST(UserInterface, test) {
 	auto hws = std::make_shared<HotWaterSource>();

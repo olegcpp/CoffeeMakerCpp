@@ -4,11 +4,6 @@
 enum WarmerPlateStatus { WARMER_EMPTY, POT_EMPTY, POT_NOT_EMPTY };
 enum BoilerStatus { EMPTY,NOT_EMPTY };
 enum BrewButtonStatus { PUSHED,NOT_PUSHED };
-enum BoilerState { BOILER_ON, BOILER_OFF };
-enum WarmerState { WARMER_ON, WARMER_OFF };
-enum IndicatorState { INDICATOR_ON, INDICATOR_OFF };
-enum ReliefValveState { OPEN, CLOSED };
-
 class CoffeeMakerAPI {
 public:
 	virtual ~CoffeeMakerAPI() {}
@@ -69,4 +64,9 @@ public:
 	 */
 	 virtual void SetReliefValveState(ReliefValveState s) = 0;
 };
+enum BoilerState { BOILER_ON, BOILER_OFF };
+enum WarmerState { WARMER_ON, WARMER_OFF };
+enum IndicatorState { INDICATOR_ON, INDICATOR_OFF };
+enum ReliefValveState { OPEN, CLOSED };
+
 #endif
