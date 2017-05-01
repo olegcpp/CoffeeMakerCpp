@@ -6,7 +6,15 @@
 #include "CoffeeMakerApi.h"
 
 class StubCoffeeMaker : public CoffeeMakerAPI {
-
+public:
+	virtual ~StubCoffeeMaker() {};
+	virtual WarmerPlateStatus GetWarmerPlateStatus() {return WARMER_EMPTY;};
+ 	virtual BoilerStatus GetBoilerStatus() {return EMPTY;};
+	virtual BrewButtonStatus GetBrewButtonStatus() {return PUSHED;};
+	virtual void SetBoilerState(BoilerState s) {};
+	virtual void SetWarmerState(WarmerState s) {};
+	virtual void SetIndicatorState(IndicatorState s) {};
+	virtual void SetReliefValveState(ReliefValveState s) {};
 };
 
 TEST_GROUP(UserInterface) {
@@ -16,7 +24,8 @@ TEST_GROUP(UserInterface) {
 TEST(UserInterface, test) {
 	auto hws = std::make_shared<HotWaterSource>();
 	auto cv = std::make_shared<ContainmentVessel>();
-	CoffeeMakerApi *fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
+
+	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
 
 	UserInterface ui(hws, cv);
 }

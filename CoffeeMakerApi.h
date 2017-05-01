@@ -10,6 +10,7 @@ enum IndicatorState { INDICATOR_ON, INDICATOR_OFF };
 enum ReliefValveState { OPEN, CLOSED };
 
 class CoffeeMakerAPI {
+public:
 	virtual ~CoffeeMakerAPI() {}
 
 	/*
