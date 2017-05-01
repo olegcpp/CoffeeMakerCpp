@@ -21,31 +21,32 @@ TEST_GROUP(UserInterface) {
 
 };
 //Figure 20.11 in C# bool
-public class AbstractHotWaterSource {
-	public:
-	virtual void start() {
-		if (isReady()) {
-			startBoiler();
-		}
-	}
 
+class AbstractHotWaterSource {
+public:
 	virtual bool isReady() = 0;
-	virtual bool startBoiler() = 0;
+	virtual void startBoiler() = 0;
 };
 
-public class CoffeeMakerHotWaterSource : public AbstractHotWaterSource {
+public class HotWaterSource : public AbstractHotWaterSource  {
+	std::shared_ptr<CoffeeMakerAPI> coffeeMaker;
+	std::shared_ptr<ContainmentVessel> cvs;
+
+private:
+	HotWaterSource() {}
+
 public:
+	HotWaterSource(std::shared_ptr<CoffeeMakerAPI> cm) {
+		this->coffeMaker = cm
+	}
+
 	virtual bool isReady() {
-		return CoffeeMaker::GetBoilerStatus() == READY;
+		return coffeeMaker->GetBoilerStatus() == READY;
 	}
 
-	virtual bool startBoiler() {
-		CoffeeMaker::StartBoiler();
-
-
+	virtual void startBoiler() {
+		coffeeMaker->SetBoilerStatus(ON);
 	}
-
-
 };
 
 TEST(UserInterface, test) {
