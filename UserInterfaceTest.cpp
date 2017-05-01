@@ -56,4 +56,6 @@ TEST(UserInterface, test) {
 	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
 
 	UserInterface ui(hws, cv);
+
+	ui.Start();
 }
