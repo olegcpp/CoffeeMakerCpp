@@ -6,13 +6,12 @@
  */
 
 #include "UserInterface.h"
+#include "ContainmentVessel.h"
+#include "HotWaterSource.h"
 
-UserInterface::UserInterface(std::shared_ptr<HotWaterSource> hws, std::shared_ptr<ContainmentVessel> cv ) {
-	// TODO Auto-generated constructor stub
-
+void UserInterface::startBrewing() {
+	if (hws->isReady() && cv->isReady()) {
+		hws->start();
+		cv->start();
+	}
 }
-
-UserInterface::~UserInterface() {
-	// TODO Auto-generated destructor stub
-}
-

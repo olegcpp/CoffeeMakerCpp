@@ -7,55 +7,108 @@
 
 class StubCoffeeMaker : public CoffeeMakerAPI {
 public:
+	StubCoffeeMaker(
+			WarmerPlateStatus wps = POT_EMPTY,
+			BoilerStatus bs = NOT_EMPTY,
+			BrewButtonStatus bbs = PUSHED)
+	: wps(wps), bs(bs), bbs(bbs) {}
+
 	virtual ~StubCoffeeMaker() {};
-	virtual WarmerPlateStatus GetWarmerPlateStatus() {return WARMER_EMPTY;};
- 	virtual BoilerStatus GetBoilerStatus() {return EMPTY;};
-	virtual BrewButtonStatus GetBrewButtonStatus() {return PUSHED;};
+
+	virtual WarmerPlateStatus GetWarmerPlateStatus() {return wps;};
+ 	virtual BoilerStatus GetBoilerStatus() {return bs;};
+	virtual BrewButtonStatus GetBrewButtonStatus() {return bbs;};
 	virtual void SetBoilerState(BoilerState s) {};
 	virtual void SetWarmerState(WarmerState s) {};
 	virtual void SetIndicatorState(IndicatorState s) {};
 	virtual void SetReliefValveState(ReliefValveState s) {};
+
+public:
+	WarmerPlateStatus wps;
+	BoilerStatus bs;
+	BrewButtonStatus bbs;
+};
+
+class StubUserInterface : public UserInterface {
+public:
+	StubUserInterface(
+			std::shared_ptr<HotWaterSource> hws,
+			std::shared_ptr<ContainmentVessel> cv,
+			bool pushed = false, bool isBrewing = false)
+	: UserInterface(hws, cv), pushed(pushed), isBrewing(isBrewing) {}
+	virtual ~StubUserInterface() {}
+	virtual void checkButton() {
+		if (pushed) {
+			startBrewing();
+		}
+	}
+public:
+	bool pushed;
+	bool isBrewing;
+};
+
+class StubHotWaterSource : public HotWaterSource {
+public:
+	StubHotWaterSource(bool ready = true, bool isBrewing = false)
+	: ready(ready), isBrewing(isBrewing) {};
+	virtual ~StubHotWaterSource() {};
+	virtual bool isReady() {return ready; }
+	virtual void start() {isBrewing = true;}
+public:
+	bool ready;
+	bool isBrewing;
+};
+
+class StubContainmentVessel : public ContainmentVessel {
+public:
+	StubContainmentVessel(bool ready = true, bool isBrewing = false)
+	: ready(ready), isBrewing(isBrewing) {};
+	virtual ~StubContainmentVessel(){};
+
+	virtual void start() {isBrewing = true;}
+	virtual bool isReady() {return ready; }
+
+public:
+	bool ready;
+	bool isBrewing;
 };
 
 TEST_GROUP(UserInterface) {
 
 };
-//Figure 20.11 in C# bool
 
-class AbstractHotWaterSource {
-public:
-	virtual bool isReady() = 0;
-	virtual void startBoiler() = 0;
-};
-
-public class HotWaterSource : public AbstractHotWaterSource  {
-	std::shared_ptr<CoffeeMakerAPI> coffeeMaker;
-	std::shared_ptr<ContainmentVessel> cvs;
-
-private:
-	HotWaterSource() {}
-
-public:
-	HotWaterSource(std::shared_ptr<CoffeeMakerAPI> cm) {
-		this->coffeMaker = cm
-	}
-
-	virtual bool isReady() {
-		return coffeeMaker->GetBoilerStatus() == READY;
-	}
-
-	virtual void startBoiler() {
-		coffeeMaker->SetBoilerStatus(ON);
-	}
-};
-
-TEST(UserInterface, test) {
-	auto hws = std::make_shared<HotWaterSource>();
-	auto cv = std::make_shared<ContainmentVessel>();
+TEST(UserInterface, buttonNotPushedCheckIfHwsBrewing) {
+	auto hws = std::make_shared<StubHotWaterSource>();
+	auto cv = std::make_shared<StubContainmentVessel>();
 
 	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
 
-	UserInterface ui(hws, cv);
+	StubUserInterface ui(hws, cv);
+	ui.pushed = false;
+	ui.checkButton();
+	CHECK_FALSE(hws->isBrewing);
+}
 
-	ui.Start();
+TEST(UserInterface, buttonPushedCheckIfHwsBrewing) {
+	auto hws = std::make_shared<StubHotWaterSource>();
+	auto cv = std::make_shared<StubContainmentVessel>();
+
+	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
+
+	StubUserInterface ui(hws, cv);
+	ui.pushed = true;
+	ui.checkButton();
+	CHECK(hws->isBrewing);
+}
+
+TEST(UserInterface, buttonPushedCheckIfCVBrewing) {
+	auto hws = std::make_shared<StubHotWaterSource>();
+	auto cv = std::make_shared<StubContainmentVessel>();
+
+	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
+
+	StubUserInterface ui(hws, cv);
+	ui.pushed = true;
+	ui.checkButton();
+	CHECK(cv->isBrewing);
 }
