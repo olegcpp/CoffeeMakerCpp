@@ -14,7 +14,6 @@ public:
 	virtual ~ContainmentVessel();
 	virtual bool isReady() = 0;
 	virtual void start() = 0;
-
 };
 
 #endif /* CONTAINMENTVESSEL_H_ */

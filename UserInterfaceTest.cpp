@@ -29,18 +29,16 @@ public:
 	BrewButtonStatus bbs;
 };
 
-class StubUserInterface : public UserInterface {
+class TestableUserInterface : public UserInterface {
 public:
-	StubUserInterface(
+	TestableUserInterface(
 			std::shared_ptr<HotWaterSource> hws,
 			std::shared_ptr<ContainmentVessel> cv,
 			bool pushed = false, bool isBrewing = false)
 	: UserInterface(hws, cv), pushed(pushed), isBrewing(isBrewing) {}
-	virtual ~StubUserInterface() {}
+	virtual ~TestableUserInterface() {}
 	virtual void checkButton() {
-		if (pushed) {
-			startBrewing();
-		}
+		startBrewing();
 	}
 public:
 	bool pushed;
@@ -77,38 +75,46 @@ TEST_GROUP(UserInterface) {
 
 };
 
-TEST(UserInterface, buttonNotPushedCheckIfHwsBrewing) {
+TEST(UserInterface, brewingNotStartIfHwsAndCVareNotReady) {
 	auto hws = std::make_shared<StubHotWaterSource>();
+	hws->ready = false;
 	auto cv = std::make_shared<StubContainmentVessel>();
+	cv->ready = false;
 
-	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
-
-	StubUserInterface ui(hws, cv);
-	ui.pushed = false;
+	TestableUserInterface ui(hws, cv);
 	ui.checkButton();
 	CHECK_FALSE(hws->isBrewing);
 }
 
-TEST(UserInterface, buttonPushedCheckIfHwsBrewing) {
+TEST(UserInterface, brewingStartsIfHwsAndCVAreReady) {
 	auto hws = std::make_shared<StubHotWaterSource>();
+	hws->ready = true;
 	auto cv = std::make_shared<StubContainmentVessel>();
+	cv->ready = true;
 
-	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
-
-	StubUserInterface ui(hws, cv);
-	ui.pushed = true;
+	TestableUserInterface ui(hws, cv);
 	ui.checkButton();
 	CHECK(hws->isBrewing);
 }
 
-TEST(UserInterface, buttonPushedCheckIfCVBrewing) {
+TEST(UserInterface, brewingDoesNotStartIfCvIsNotReady) {
 	auto hws = std::make_shared<StubHotWaterSource>();
+	hws->ready = true;
 	auto cv = std::make_shared<StubContainmentVessel>();
+	cv->ready = false;
 
-	std::shared_ptr<CoffeeMakerAPI> fakeCoffeeMaker = std::make_shared<StubCoffeeMaker>();
-
-	StubUserInterface ui(hws, cv);
-	ui.pushed = true;
+	TestableUserInterface ui(hws, cv);
 	ui.checkButton();
-	CHECK(cv->isBrewing);
+	CHECK_FALSE(cv->isBrewing);
+}
+
+TEST(UserInterface, brewingDoesNotStartIfHwsIsNotReady) {
+	auto hws = std::make_shared<StubHotWaterSource>();
+	hws->ready = false;
+	auto cv = std::make_shared<StubContainmentVessel>();
+	cv->ready = true;
+
+	TestableUserInterface ui(hws, cv);
+	ui.checkButton();
+	CHECK_FALSE(cv->isBrewing);
 }
