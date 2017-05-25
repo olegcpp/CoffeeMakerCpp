@@ -7,12 +7,13 @@
 
 #include "ContainmentVessel.h"
 
-ContainmentVessel::ContainmentVessel() {
-	// TODO Auto-generated constructor stub
-
-}
 
 ContainmentVessel::~ContainmentVessel() {
 	// TODO Auto-generated destructor stub
+}
+
+void ContainmentVessel::start() {
+	isBrewing = true;
+	isComplete = false;
 }
 

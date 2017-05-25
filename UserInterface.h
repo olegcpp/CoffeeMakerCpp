@@ -10,13 +10,14 @@ private:
 	std::shared_ptr<HotWaterSource> hws;
 	std::shared_ptr<ContainmentVessel> cv;
 public:
-	UserInterface(
-			std::shared_ptr<HotWaterSource> hws,
-			std::shared_ptr<ContainmentVessel> cv)
-	: hws(hws), cv(cv){};
+	UserInterface(){};
 
 	virtual ~UserInterface(){};
-
+	void Init(std::shared_ptr<HotWaterSource> hws,
+			std::shared_ptr<ContainmentVessel> cv) {
+		this->hws = hws;
+		this->cv = cv;
+	}
 	virtual void checkButton() = 0;
 	void startBrewing();
 };

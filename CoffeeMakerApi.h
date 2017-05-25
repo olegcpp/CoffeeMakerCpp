@@ -1,15 +1,16 @@
 #ifndef _COFFEE_MAKER_API_H
 #define _COFFEE_MAKER_API_H
 
-enum WarmerPlateStatus { WARMER_EMPTY, POT_EMPTY, POT_NOT_EMPTY };
-enum BoilerStatus { EMPTY,NOT_EMPTY };
-enum BrewButtonStatus { PUSHED,NOT_PUSHED };
-enum BoilerState { BOILER_ON, BOILER_OFF };
-enum WarmerState { WARMER_ON, WARMER_OFF };
-enum IndicatorState { INDICATOR_ON, INDICATOR_OFF };
-enum ReliefValveState { OPEN, CLOSED };
 
 class CoffeeMakerAPI {
+public:
+	enum WarmerPlateStatus { WARMER_EMPTY, POT_EMPTY, POT_NOT_EMPTY };
+	enum BoilerStatus { EMPTY,NOT_EMPTY };
+	enum BrewButtonStatus { PUSHED,NOT_PUSHED };
+	enum BoilerState { BOILER_ON, BOILER_OFF };
+	enum WarmerState { WARMER_ON, WARMER_OFF };
+	enum IndicatorState { INDICATOR_ON, INDICATOR_OFF };
+	enum ReliefValveState { OPEN, CLOSED };
 public:
 	virtual ~CoffeeMakerAPI() {}
 

@@ -4,30 +4,17 @@
 #include "HotWaterSource.h"
 #include "ContainmentVessel.h"
 #include "CoffeeMakerApi.h"
+#include "StubCoffeeMakerAPI.h"
+#include "M4HotWaterSource.h"
+#include "M4ContainmentVessel.h"
 
-class StubCoffeeMaker : public CoffeeMakerAPI {
-public:
-	StubCoffeeMaker(
-			WarmerPlateStatus wps = POT_EMPTY,
-			BoilerStatus bs = NOT_EMPTY,
-			BrewButtonStatus bbs = PUSHED)
-	: wps(wps), bs(bs), bbs(bbs) {}
 
-	virtual ~StubCoffeeMaker() {};
-
-	virtual WarmerPlateStatus GetWarmerPlateStatus() {return wps;};
- 	virtual BoilerStatus GetBoilerStatus() {return bs;};
-	virtual BrewButtonStatus GetBrewButtonStatus() {return bbs;};
-	virtual void SetBoilerState(BoilerState s) {};
-	virtual void SetWarmerState(WarmerState s) {};
-	virtual void SetIndicatorState(IndicatorState s) {};
-	virtual void SetReliefValveState(ReliefValveState s) {};
-
-public:
-	WarmerPlateStatus wps;
-	BoilerStatus bs;
-	BrewButtonStatus bbs;
-};
+// UI -> Used "TestableUserInterterface" so you wouldn't mock out the CoffeeMaker,
+// with mocks for HotWaterSource and ContainmentVessel
+// HotWaterSource -> Use a "real" M4HotWaterSource and mocks for the CoffeMakerAPI,
+// ContainmentVessel and UI
+// ContainmentVessel -> Use a real M4ContainmentVessel in your tests, use the StubCoffeeMakerApi,
+// but use real version of M4HotWaterSource and M4UI
 
 class TestableUserInterface : public UserInterface {
 public:
@@ -35,7 +22,9 @@ public:
 			std::shared_ptr<HotWaterSource> hws,
 			std::shared_ptr<ContainmentVessel> cv,
 			bool pushed = false, bool isBrewing = false)
-	: UserInterface(hws, cv), pushed(pushed), isBrewing(isBrewing) {}
+	: UserInterface(), pushed(pushed), isBrewing(isBrewing) {
+		UserInterface::Init(hws, cv);
+	}
 	virtual ~TestableUserInterface() {}
 	virtual void checkButton() {
 		startBrewing();
@@ -71,8 +60,23 @@ public:
 	bool isBrewing;
 };
 
-TEST_GROUP(UserInterface) {
+class StubUserInterface : public UserInterface {
+public:
+	StubUserInterface(bool ready = true, bool isBrewing = false)
+	: ready(ready), isBrewing(isBrewing) {};
+	virtual ~StubUserInterface(){};
 
+	virtual void start() {isBrewing = true;}
+	virtual bool isReady() {return ready; }
+	virtual void checkButton() {
+		startBrewing();
+	}
+
+public:
+	bool ready;
+	bool isBrewing;
+};
+TEST_GROUP(UserInterface) {
 };
 
 TEST(UserInterface, brewingNotStartIfHwsAndCVareNotReady) {
@@ -117,4 +121,38 @@ TEST(UserInterface, brewingDoesNotStartIfHwsIsNotReady) {
 	TestableUserInterface ui(hws, cv);
 	ui.checkButton();
 	CHECK_FALSE(cv->isBrewing);
+}
+
+TEST_GROUP(HotWaterSource) {
+
+};
+
+TEST(HotWaterSource, checkIfReadyWhenBoilerEmpty)
+{
+	auto stubAPI = std::make_shared<StubCoffeeMakerAPI>();
+	stubAPI->bs = CoffeeMakerAPI::EMPTY;
+	std::shared_ptr<HotWaterSource> hws =
+			std::make_shared<M4HotWaterSource>(M4HotWaterSource(stubAPI));
+
+	std::shared_ptr<UserInterface> stubUI = std::make_shared<StubUserInterface>();
+	std::shared_ptr<ContainmentVessel> stubCV = std::make_shared<StubContainmentVessel>();
+	hws->Init(stubUI, stubCV);
+	CHECK_FALSE(hws->isReady());
+}
+
+TEST_GROUP(ContainmentVessel) {
+
+};
+
+TEST(ContainmentVessel, checkIfReadyWhenPotNotEmpty)
+{
+	auto stubAPI = std::make_shared<StubCoffeeMakerAPI>();
+	stubAPI->wps = CoffeeMakerAPI::POT_NOT_EMPTY;
+	std::shared_ptr<ContainmentVessel> cv =
+			std::make_shared<M4ContainmentVessel>(M4ContainmentVessel(stubAPI));
+
+	std::shared_ptr<UserInterface> stubUI = std::make_shared<StubUserInterface>();
+	std::shared_ptr<HotWaterSource> stubHWS = std::make_shared<StubHotWaterSource>();
+	cv->Init(stubHWS, stubUI);
+	CHECK_FALSE(cv->isReady());
 }
